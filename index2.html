@@ -11,20 +11,20 @@
     </style>
 </head>
 <body>
-    <h1>Product Selection</h1>
+    <h2>Product Selection</h2>
 
     <label for="product-dropdown">Select a Product:</label>
     <select id="product-dropdown">
-        <option value="">Select Product</option>
+        <option value="" disabled selected>Select Product</option>
         <option value="boost">Boost</option>
         <option value="healthgrow">HealthGrow</option>
         <option value="ardhim">Ardhim</option>
     </select>
 
     <div class="vertical-space">
-        <label for="variant-dropdown">Select a Variant:</label>
+        <label for="variant-dropdown">Select a Plan:</label>
         <select id="variant-dropdown">
-            <option value="">Select Variant</option>
+            <option value="" disabled selected>Select Plan</option>
             <!-- Options will be added dynamically based on product selection -->
         </select>
     </div>
@@ -34,16 +34,10 @@
     </div>
 
     <div class="vertical-space">
-        <label for="discount-dropdown">Select a Discount:</label>
-        <select id="discount-dropdown">
-            <option value="">Select Discount</option>
-            <option value="5">5%</option>
-            <option value="10">10%</option>
-            <option value="15">15%</option>
-            <option value="20">20%</option>
-            <option value="25">25%</option>
-            <option value="30">30%</option>
-        </select>
+        <label for="discount-code">Enter Discount Code:</label>
+        <input type="text" id="discount-code">
+        <button id="apply-discount-button">Apply</button>
+        <p id="discount-error" style="color: red;"></p>
     </div>
 
     <div>
@@ -51,22 +45,24 @@
     </div>
 
     <div class="vertical-space">
-        <button id="pay-button">Pay</button>
+        <button id="pay-button"> <b>Pay</b> </button>
     </div>
 
     <script>
         const productDropdown = document.getElementById('product-dropdown');
         const variantDropdown = document.getElementById('variant-dropdown');
-        const discountDropdown = document.getElementById('discount-dropdown');
+        const discountCodeInput = document.getElementById('discount-code');
+        const applyDiscountButton = document.getElementById('apply-discount-button');
+        const discountError = document.getElementById('discount-error');
         const selectedVariantPrice = document.getElementById('selected-variant-price');
         const finalPrice = document.getElementById('final-price');
         const payButton = document.getElementById('pay-button');
 
         const productVariants = {
             boost: [
-                { variant: 'B1', price: 100 },
-                { variant: 'B2', price: 200 },
-                { variant: 'B3', price: 300 }
+                { variant: 'Online Classic', price: 18832.66 },
+                { variant: 'Online Advanced', price: 29084.92 },
+                { variant: 'Online Advanced Pro', price: 56059.69 }
             ],
             healthgrow: [
                 { variant: 'H1', price: 200 },
@@ -80,6 +76,13 @@
             ]
         };
 
+        const discountCodes = {
+            CODE2: 10,
+            CODE3: 15,
+            CODE4: 20
+        };
+
+        // Update variant dropdown based on selected product
         productDropdown.addEventListener('change', () => {
             const selectedProduct = productDropdown.value;
             const variants = productVariants[selectedProduct];
@@ -87,18 +90,14 @@
             // Clear existing options
             variantDropdown.innerHTML = '';
 
-            // Add new variant options
-            const selectVariantOption = document.createElement('option');
-            selectVariantOption.value = '';
-            selectVariantOption.textContent = 'Select Variant';
-            variantDropdown.appendChild(selectVariantOption);
-
             variants.forEach((variantObj) => {
                 const option = document.createElement('option');
                 option.value = variantObj.variant;
-                option.textContent = variantObj.variant;
+                option.text = variantObj.variant;
                 variantDropdown.appendChild(option);
             });
+
+            variantDropdown.prepend(new Option('Select Plan', '', true, true));
 
             // Clear variant price and final price
             selectedVariantPrice.textContent = '';
@@ -112,27 +111,35 @@
             const selectedProduct = productDropdown.value;
             const selectedVariant = variantDropdown.value;
             const variants = productVariants[selectedProduct];
-            const selectedDiscount = discountDropdown.value;
+            const discountCode = discountCodeInput.value.toUpperCase();
 
-            // Find the selected variant's price
             const selectedVariantObj = variants.find(variantObj => variantObj.variant === selectedVariant);
 
-            // Display the price
+            // Clear discount error message
+            discountError.textContent = '';
+
+            // Display the price and final price
             if (selectedVariantObj) {
                 selectedVariantPrice.textContent = `Price: Rs.${selectedVariantObj.price}`;
 
-                // Calculate final price after discount
-                const discount = (selectedVariantObj.price * selectedDiscount) / 100;
-                const finalPriceValue = selectedVariantObj.price - discount;
+                const selectedDiscount = discountCodes[discountCode] || 0;
 
-                finalPrice.textContent = `Final Price after ${selectedDiscount}% discount: Rs.${finalPriceValue.toFixed(2)}`;
+                if (selectedDiscount === 0 && discountCode !== '') {
+                    discountError.textContent = 'Code is invalid';
+                    finalPrice.textContent = '';
+                } else {
+                    const discount = (selectedVariantObj.price * selectedDiscount) / 100;
+                    const finalPriceValue = selectedVariantObj.price - discount;
+
+                    finalPrice.textContent = `Final Price after ${selectedDiscount}% discount: Rs.${finalPriceValue.toFixed(2)}`;
+                }
             } else {
                 selectedVariantPrice.textContent = '';
                 finalPrice.textContent = '';
             }
         });
 
-        discountDropdown.addEventListener('change', () => {
+        applyDiscountButton.addEventListener('click', () => {
             variantDropdown.dispatchEvent(new Event('change'));
         });
 
@@ -140,11 +147,7 @@
             window.location.href = 'payment.html';
         });
 
-        // Trigger the initial change event to populate the variant dropdown
         productDropdown.dispatchEvent(new Event('change'));
-
-        // Trigger the initial variant change event to display the price for the initially selected variant
-        variantDropdown.dispatchEvent(new Event('change'));
     </script>
 </body>
 </html>
