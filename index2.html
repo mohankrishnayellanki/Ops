@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Selection</title>
+    <style>
+        .vertical-space {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Product Selection</h2>
+
+    <label for="product-dropdown">Select a Product:</label>
+    <select id="product-dropdown">
+        <option value="" disabled selected>Select Product</option>
+        <option value="boost">Boost</option>
+        <option value="healthgrow">HealthGrow</option>
+        <option value="ardhim">Ardhim</option>
+    </select>
+
+    <div class="vertical-space">
+        <label for="variant-dropdown">Select a Plan:</label>
+        <select id="variant-dropdown">
+            <option value="" disabled selected>Select Plan</option>
+            <!-- Options will be added dynamically based on product selection -->
+        </select>
+    </div>
+
+    <div>
+        <p id="selected-variant-price"></p>
+    </div>
+
+    <div class="vertical-space">
+        <label for="discount-code">Enter Discount Code:</label>
+        <input type="text" id="discount-code">
+        <button id="apply-discount-button">Apply</button>
+        <p id="discount-error" style="color: red;"></p>
+    </div>
+
+    <div>
+        <p id="final-price"></p>
+    </div>
+
+    <div class="vertical-space">
+        <button id="pay-button"> <b>Pay</b> </button>
+    </div>
+
+    <script>
+        const productDropdown = document.getElementById('product-dropdown');
+        const variantDropdown = document.getElementById('variant-dropdown');
+        const discountCodeInput = document.getElementById('discount-code');
+        const applyDiscountButton = document.getElementById('apply-discount-button');
+        const discountError = document.getElementById('discount-error');
+        const selectedVariantPrice = document.getElementById('selected-variant-price');
+        const finalPrice = document.getElementById('final-price');
+        const payButton = document.getElementById('pay-button');
+
+        const productVariants = {
+            boost: [
+                { variant: 'Online Classic', price: 18832.66 },
+                { variant: 'Online Advanced', price: 29084.92 },
+                { variant: 'Online Advanced Pro', price: 56059.69 }
+            ],
+            healthgrow: [
+                { variant: 'H1', price: 200 },
+                { variant: 'H2', price: 400 },
+                { variant: 'H3', price: 600 }
+            ],
+            ardhim: [
+                { variant: 'A1', price: 400 },
+                { variant: 'A2', price: 500 },
+                { variant: 'A3', price: 700 }
+            ]
+        };
+
+        const discountCodes = {
+            CODE2: 10,
+            CODE3: 15,
+            CODE4: 20
+        };
+
+        // Update variant dropdown based on selected product
+        productDropdown.addEventListener('change', () => {
+            const selectedProduct = productDropdown.value;
+            const variants = productVariants[selectedProduct];
+
+            // Clear existing options
+            variantDropdown.innerHTML = '';
+
+            variants.forEach((variantObj) => {
+                const option = document.createElement('option');
+                option.value = variantObj.variant;
+                option.text = variantObj.variant;
+                variantDropdown.appendChild(option);
+            });
+
+            variantDropdown.prepend(new Option('Select Plan', '', true, true));
+
+            // Clear variant price and final price
+            selectedVariantPrice.textContent = '';
+            finalPrice.textContent = '';
+
+            // Trigger the variant change event to update price
+            variantDropdown.dispatchEvent(new Event('change'));
+        });
+
+        variantDropdown.addEventListener('change', () => {
+            const selectedProduct = productDropdown.value;
+            const selectedVariant = variantDropdown.value;
+            const variants = productVariants[selectedProduct];
+            const discountCode = discountCodeInput.value.toUpperCase();
+
+            const selectedVariantObj = variants.find(variantObj => variantObj.variant === selectedVariant);
+
+            // Clear discount error message
+            discountError.textContent = '';
+
+            // Display the price and final price
+            if (selectedVariantObj) {
+                selectedVariantPrice.textContent = `Price: Rs.${selectedVariantObj.price}`;
+
+                const selectedDiscount = discountCodes[discountCode] || 0;
+
+                if (selectedDiscount === 0 && discountCode !== '') {
+                    discountError.textContent = 'Code is invalid';
+                    finalPrice.textContent = '';
+                } else {
+                    const discount = (selectedVariantObj.price * selectedDiscount) / 100;
+                    const finalPriceValue = selectedVariantObj.price - discount;
+
+                    finalPrice.textContent = `Final Price after ${selectedDiscount}% discount: Rs.${finalPriceValue.toFixed(2)}`;
+                }
+            } else {
+                selectedVariantPrice.textContent = '';
+                finalPrice.textContent = '';
+            }
+        });
+
+        applyDiscountButton.addEventListener('click', () => {
+            variantDropdown.dispatchEvent(new Event('change'));
+        });
+
+        payButton.addEventListener('click', () => {
+            window.location.href = 'payment.html';
+        });
+
+        productDropdown.dispatchEvent(new Event('change'));
+    </script>
+</body>
+</html>
